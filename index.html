@@ -1,0 +1,856 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="亚马逊广告增加预算后转化率下降的原因与优化方法">
+  <title>为什么广告加预算后，转化反而变差？</title>
+
+  <!-- 视觉系统：单文件离线演示，不依赖外部字体或资源 -->
+  <style>
+    :root {
+      --ink: #17201c;
+      --muted: #5f6c66;
+      --paper: #f6f2e8;
+      --paper-2: #fffdf7;
+      --orange: #ff5c35;
+      --orange-soft: #ffd4c8;
+      --green: #0c7c66;
+      --green-soft: #cce9df;
+      --yellow: #ffd166;
+      --line: rgba(23, 32, 28, 0.14);
+      --shadow: 0 24px 64px rgba(24, 31, 28, 0.16);
+      --radius: 28px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #0d1411; color: var(--ink); font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", Arial, sans-serif; }
+
+    button { font: inherit; }
+
+    /* 舞台：保持 16:9，并在任意窗口中居中缩放 */
+    .stage { position: fixed; inset: 0; display: grid; place-items: center; padding: 18px; background: radial-gradient(circle at 20% 10%, rgba(12, 124, 102, 0.22), transparent 34%), radial-gradient(circle at 82% 84%, rgba(255, 92, 53, 0.22), transparent 30%), #0d1411; }
+    .deck { position: relative; width: min(calc(100vw - 36px), calc((100vh - 36px) * 16 / 9)); aspect-ratio: 16 / 9; overflow: hidden; border-radius: 18px; box-shadow: var(--shadow); background: var(--paper); }
+    .slide { position: absolute; inset: 0; display: grid; grid-template-rows: auto 1fr auto; padding: 5.3% 6.4% 4.2%; overflow: hidden; opacity: 0; visibility: hidden; transform: translateX(4%); transition: opacity 360ms ease, transform 520ms cubic-bezier(.2,.8,.2,1), visibility 360ms; background: var(--paper); }
+    .slide.active { opacity: 1; visibility: visible; transform: translateX(0); z-index: 2; }
+    .slide.previous { transform: translateX(-4%); }
+    .slide::before { content: ""; position: absolute; width: 28%; aspect-ratio: 1; right: -10%; top: -22%; border-radius: 50%; background: rgba(255, 92, 53, 0.08); }
+    .slide::after { content: ""; position: absolute; left: 0; bottom: 0; width: 38%; height: 4px; background: var(--orange); }
+
+    /* 排版：字号按演示画布自适应，保证标题不换行 */
+    .eyebrow { display: flex; align-items: center; gap: 0.7em; min-height: 1.4em; color: var(--green); font-size: clamp(11px, 1vw, 18px); font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; }
+    .eyebrow::before { content: ""; width: 2.1em; height: 0.22em; border-radius: 999px; background: currentColor; }
+    h1, h2, h3, p { margin: 0; }
+    h1 { max-width: 88%; font-size: clamp(34px, 5.3vw, 86px); line-height: 1.04; letter-spacing: -0.055em; font-weight: 950; }
+    h2 { max-width: 92%; font-size: clamp(26px, 3.35vw, 58px); line-height: 1.1; letter-spacing: -0.035em; font-weight: 920; }
+    h3 { font-size: clamp(16px, 1.65vw, 29px); line-height: 1.25; }
+    p, li { font-size: clamp(13px, 1.35vw, 23px); line-height: 1.55; }
+    .lead { color: var(--muted); font-size: clamp(15px, 1.8vw, 30px); line-height: 1.45; }
+    .huge { font-size: clamp(42px, 7.2vw, 116px); line-height: 0.92; letter-spacing: -0.07em; font-weight: 950; }
+    .accent { color: var(--orange); }
+    .green { color: var(--green); }
+    .muted { color: var(--muted); }
+    .mono { font-variant-numeric: tabular-nums; }
+    .nowrap { white-space: nowrap; }
+    .slide-head { position: relative; z-index: 1; display: grid; gap: 1.1vh; }
+    .slide-body { position: relative; z-index: 1; min-height: 0; display: grid; align-items: center; padding-top: 2.3%; }
+    .slide-foot { position: relative; z-index: 1; display: flex; justify-content: space-between; align-items: end; gap: 2em; color: var(--muted); font-size: clamp(9px, 0.78vw, 14px); }
+    .source-note { max-width: 78%; line-height: 1.45; }
+
+    /* 常用版式：用少量结构承载重点，避免面板堆叠 */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 6%; align-items: center; width: 100%; }
+    .two-col.wide-left { grid-template-columns: 1.15fr 0.85fr; }
+    .stack { display: grid; gap: clamp(10px, 1.25vw, 22px); }
+    .reading { display: grid; gap: clamp(9px, 1.05vw, 18px); }
+    .reading p { font-size: clamp(12px, 1.12vw, 19px); line-height: 1.62; }
+    .reading strong { color: var(--ink); }
+    .reading .key-sentence { padding-left: 1em; border-left: 5px solid var(--orange); color: var(--ink); font-size: clamp(14px, 1.38vw, 23px); font-weight: 850; line-height: 1.5; }
+    .mini-title { color: var(--green); font-size: clamp(14px, 1.25vw, 21px); font-weight: 900; }
+    .text-band { padding: 1em 1.15em; background: rgba(12, 124, 102, 0.08); border-top: 1px solid rgba(12, 124, 102, 0.2); border-bottom: 1px solid rgba(12, 124, 102, 0.2); }
+    .text-band p { font-size: clamp(12px, 1.08vw, 18px); line-height: 1.58; }
+    .rule { width: 100%; height: 1px; background: var(--line); }
+    .note { padding: 1.1em 1.25em; border-left: 5px solid var(--yellow); background: rgba(255, 209, 102, 0.17); font-size: clamp(11px, 1.05vw, 18px); line-height: 1.45; }
+    .callout { padding: 1.1em 1.25em; border-radius: 18px; background: var(--paper-2); border: 1px solid var(--line); }
+    .callout strong { display: block; margin-bottom: 0.35em; color: var(--green); font-size: 1.08em; }
+    .bullet-list { display: grid; gap: 0.75em; margin: 0; padding: 0; list-style: none; }
+    .bullet-list li { position: relative; padding-left: 1.7em; }
+    .bullet-list li::before { content: ""; position: absolute; left: 0; top: 0.62em; width: 0.64em; height: 0.64em; border-radius: 50%; background: var(--orange); }
+    .number-list { counter-reset: steps; display: grid; gap: 1em; margin: 0; padding: 0; list-style: none; }
+    .number-list li { counter-increment: steps; position: relative; min-height: 2.2em; padding-left: 3.1em; }
+    .number-list li::before { content: counter(steps, decimal-leading-zero); position: absolute; left: 0; top: -0.12em; color: var(--orange); font-size: 1.35em; font-weight: 900; }
+
+    /* 封面：高对比结论先行 */
+    .cover { color: #f8f3e9; background: #13211c; }
+    .cover::before { width: 44%; right: -10%; top: -35%; background: rgba(255, 92, 53, 0.22); }
+    .cover::after { width: 100%; height: 7px; background: linear-gradient(90deg, var(--orange) 0 43%, var(--yellow) 43% 61%, var(--green) 61% 100%); }
+    .cover .eyebrow { color: var(--yellow); }
+    .cover .slide-body { align-items: end; padding-bottom: 3%; }
+    .cover .lead { max-width: 66%; color: rgba(248, 243, 233, 0.72); }
+    .cover-mark { position: absolute; right: 6.2%; bottom: 10%; width: 23%; aspect-ratio: 1; border-radius: 50%; border: 2px solid rgba(255,255,255,0.16); display: grid; place-items: center; }
+    .cover-mark::before, .cover-mark::after { content: ""; position: absolute; border-radius: 50%; border: 2px solid rgba(255,255,255,0.16); }
+    .cover-mark::before { inset: 16%; }
+    .cover-mark::after { inset: 32%; background: var(--orange); border: 0; box-shadow: 0 0 0 0.9vw rgba(255,92,53,0.16); }
+
+    /* 数据与对比：颜色表达增长和转化变化 */
+    .metric-pair { display: grid; grid-template-columns: 1fr auto 1fr; gap: 4%; align-items: center; }
+    .metric { display: grid; gap: 0.45em; }
+    .metric .label { color: var(--muted); font-size: clamp(12px, 1.1vw, 19px); font-weight: 750; }
+    .metric .value { font-size: clamp(38px, 6.3vw, 102px); line-height: 0.96; letter-spacing: -0.065em; font-weight: 950; }
+    .metric-arrow { color: var(--orange); font-size: clamp(26px, 4.2vw, 68px); font-weight: 900; }
+    .delta { display: inline-flex; align-items: center; width: max-content; padding: 0.35em 0.7em; border-radius: 999px; color: #8f2610; background: var(--orange-soft); font-size: clamp(11px, 1vw, 17px); font-weight: 850; }
+
+    /* 时间轴：复盘 8 月广告案例 */
+    .timeline { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); gap: 2.2%; width: 100%; align-items: start; }
+    .timeline::before { content: ""; position: absolute; left: 1.7%; right: 1.7%; top: 1.05em; height: 3px; background: linear-gradient(90deg, var(--green), var(--orange)); }
+    .time-item { position: relative; padding-top: 2.7em; }
+    .time-item::before { content: ""; position: absolute; top: 0.52em; left: 0; width: 1.08em; height: 1.08em; border: 4px solid var(--paper); border-radius: 50%; background: var(--green); box-shadow: 0 0 0 2px var(--green); }
+    .time-item:last-child::before { background: var(--orange); box-shadow: 0 0 0 2px var(--orange); }
+    .time-date { color: var(--green); font-size: clamp(12px, 1.05vw, 18px); font-weight: 900; }
+    .time-item:last-child .time-date { color: var(--orange); }
+    .time-title { margin: 0.35em 0 0.5em; font-size: clamp(15px, 1.45vw, 25px); font-weight: 900; }
+    .time-copy { color: var(--muted); font-size: clamp(11px, 1.02vw, 17px); line-height: 1.5; }
+
+    /* 流量漏斗：展示边际流量如何稀释转化 */
+    .traffic-orbit { position: relative; min-height: 43vh; display: grid; place-items: center; }
+    .orbit { position: absolute; border-radius: 50%; display: grid; place-items: center; text-align: center; }
+    .orbit.outer { width: 88%; aspect-ratio: 1; border: 2px dashed rgba(255,92,53,0.38); background: rgba(255,92,53,0.07); color: #8f311c; }
+    .orbit.middle { width: 61%; aspect-ratio: 1; border: 2px solid rgba(12,124,102,0.22); background: rgba(12,124,102,0.09); }
+    .orbit.inner { width: 31%; aspect-ratio: 1; background: var(--green); color: white; box-shadow: 0 0 0 1.2vw rgba(12,124,102,0.13); }
+    .orbit-copy { width: 72%; font-size: clamp(10px, 1vw, 17px); line-height: 1.35; font-weight: 800; }
+
+    /* 公式：把口述机制转为可理解的加权平均 */
+    .equation { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 1.5%; align-items: center; }
+    .equation-part { min-height: 9em; display: grid; place-content: center; gap: 0.35em; padding: 1em; text-align: center; border-top: 5px solid var(--green); background: var(--paper-2); }
+    .equation-part.low { border-color: var(--orange); }
+    .equation-part.result { border-color: var(--ink); }
+    .equation-sign { color: var(--muted); font-size: clamp(20px, 2.5vw, 42px); font-weight: 900; }
+    .equation-part .big { font-size: clamp(24px, 3vw, 50px); font-weight: 950; }
+    .equation-part .small { color: var(--muted); font-size: clamp(10px, 0.95vw, 16px); line-height: 1.35; }
+
+    /* 分层曲线：展示转化率与新增点击之间的关系 */
+    .curve-box { position: relative; height: 38vh; min-height: 230px; border-left: 2px solid var(--ink); border-bottom: 2px solid var(--ink); }
+    .curve-line { position: absolute; left: 7%; top: 9%; width: 83%; height: 70%; border-radius: 60% 8% 60% 18%; border-top: 10px solid var(--orange); transform: rotate(7deg); }
+    .curve-line::before { content: ""; position: absolute; inset: 20% 3% auto auto; width: 13px; height: 13px; border-radius: 50%; background: var(--orange); box-shadow: -18vw -1.8vw 0 0 var(--green); }
+    .axis-y, .axis-x { position: absolute; color: var(--muted); font-size: clamp(9px, 0.86vw, 15px); font-weight: 750; }
+    .axis-y { left: -0.7em; top: -2.1em; }
+    .axis-x { right: 0; bottom: -2.1em; }
+    .curve-label { position: absolute; max-width: 31%; font-size: clamp(10px, 0.95vw, 16px); line-height: 1.4; font-weight: 800; }
+    .curve-label.good { left: 4%; top: 10%; color: var(--green); }
+    .curve-label.margin { right: 4%; bottom: 19%; color: #9b351f; }
+
+    /* 预算公式与策略节奏 */
+    .formula { display: flex; align-items: baseline; justify-content: center; flex-wrap: wrap; gap: 0.2em 0.45em; padding: 1.2em; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); font-size: clamp(22px, 3.4vw, 58px); font-weight: 900; }
+    .formula .operator { color: var(--orange); }
+    .formula .result { color: var(--green); }
+    .formula-caption { margin-top: 1em; text-align: center; color: var(--muted); font-size: clamp(11px, 1vw, 17px); }
+    .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2.8%; width: 100%; align-items: start; }
+    .step { position: relative; padding-top: 3.25em; }
+    .step::before { content: attr(data-step); position: absolute; top: 0; left: 0; display: grid; place-items: center; width: 2.3em; aspect-ratio: 1; border-radius: 50%; color: white; background: var(--green); font-size: clamp(14px, 1.25vw, 22px); font-weight: 900; }
+    .step:not(:last-child)::after { content: ""; position: absolute; top: 1.08em; left: 3em; width: calc(100% - 2.5em); height: 2px; background: var(--line); }
+    .step h3 { margin-bottom: 0.5em; }
+    .step p { color: var(--muted); font-size: clamp(10px, 0.98vw, 17px); }
+
+    /* 位置优化：三层条带替代复杂图表 */
+    .placement-bars { display: grid; gap: 1em; }
+    .placement-row { display: grid; grid-template-columns: 11em 1fr 5.5em; gap: 1em; align-items: center; }
+    .placement-label { font-size: clamp(11px, 1.08vw, 19px); font-weight: 850; }
+    .placement-track { height: 1.25em; overflow: hidden; border-radius: 999px; background: rgba(23,32,28,0.08); }
+    .placement-fill { height: 100%; border-radius: inherit; background: var(--green); }
+    .placement-fill.mid { background: var(--yellow); }
+    .placement-fill.low { background: var(--orange); }
+    .placement-action { color: var(--muted); font-size: clamp(10px, 0.92vw, 16px); font-weight: 750; text-align: right; }
+
+    /* 风险与边界：用并列观点区分事实、经验和待验证项 */
+    .boundary { display: grid; grid-template-columns: 0.95fr 1.05fr; gap: 6%; align-items: stretch; }
+    .boundary-side { padding: 1.4em 1.5em; border-top: 6px solid var(--green); background: var(--paper-2); }
+    .boundary-side.hypothesis { border-color: var(--orange); }
+    .boundary-side h3 { margin-bottom: 0.8em; }
+    .boundary-side ul { margin: 0; padding-left: 1.25em; }
+    .boundary-side li { margin-bottom: 0.55em; font-size: clamp(11px, 1.05vw, 18px); }
+
+    /* 导航：演示模式只保留必要控件 */
+    .controls { position: fixed; z-index: 20; left: 50%; bottom: max(24px, env(safe-area-inset-bottom)); transform: translateX(-50%); display: flex; align-items: center; gap: 10px; padding: 8px 11px; border: 1px solid rgba(255,255,255,0.14); border-radius: 999px; color: white; background: rgba(13,20,17,0.82); box-shadow: 0 12px 36px rgba(0,0,0,0.26); backdrop-filter: blur(14px); transition: opacity 200ms ease; }
+    .controls button { width: 38px; height: 38px; padding: 0; border: 0; border-radius: 50%; color: white; background: transparent; cursor: pointer; font-size: 20px; line-height: 1; }
+    .controls button:hover, .controls button:focus-visible { outline: none; background: rgba(255,255,255,0.13); }
+    .controls button:disabled { opacity: 0.28; cursor: default; }
+    .slide-count { min-width: 70px; text-align: center; font-size: 13px; font-variant-numeric: tabular-nums; }
+    .progress { position: fixed; z-index: 21; top: 0; left: 0; width: 0; height: 4px; background: linear-gradient(90deg, var(--yellow), var(--orange)); transition: width 320ms ease; }
+    .hint { position: fixed; z-index: 20; top: 22px; right: 28px; padding: 7px 11px; border-radius: 999px; color: rgba(255,255,255,0.72); background: rgba(13,20,17,0.62); font-size: 12px; backdrop-filter: blur(10px); }
+
+    /* 小屏与打印：保持可读，并支持浏览器打印成横版 PDF */
+    @media (max-width: 760px) {
+      .stage { padding: 0; }
+      .deck { width: 100vw; border-radius: 0; }
+      .controls { bottom: 10px; }
+      .hint { display: none; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .slide, .progress { transition: none; }
+    }
+
+    @media print {
+      @page { size: 13.333in 7.5in; margin: 0; }
+      html, body { width: auto; height: auto; overflow: visible; background: white; }
+      .stage { position: static; display: block; padding: 0; background: none; }
+      .deck { width: auto; aspect-ratio: auto; overflow: visible; border-radius: 0; box-shadow: none; }
+      .slide { position: relative; width: 13.333in; height: 7.5in; opacity: 1; visibility: visible; transform: none; page-break-after: always; break-after: page; }
+      .controls, .progress, .hint { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <!-- 演示舞台 -->
+  <main class="stage" aria-label="亚马逊广告预算与转化率演示稿">
+    <div class="deck" id="deck">
+
+      <!-- 第 1 页：标题 -->
+      <section class="slide cover active" aria-labelledby="s1-title">
+        <header class="slide-head">
+          <div class="eyebrow">Amazon Ads · 增长策略</div>
+          <h1 id="s1-title">为什么广告<span class="accent">加预算</span>后，<br>转化反而变差？</h1>
+        </header>
+        <div class="slide-body">
+          <p class="lead">问题往往不在“预算”本身，而在放量后进入广告的人群发生了变化。</p>
+          <div class="cover-mark" aria-hidden="true"></div>
+        </div>
+        <footer class="slide-foot">
+          <span>从流量稀释到分阶段放量</span>
+          <span>01 / 20</span>
+        </footer>
+      </section>
+
+      <!-- 第 2 页：核心结论 -->
+      <section class="slide" aria-labelledby="s2-title">
+        <header class="slide-head">
+          <div class="eyebrow">先说结论</div>
+          <h2 id="s2-title">预算增加，不等于转化下降；<br><span class="accent">边际流量变差</span>，才会拉低平均值</h2>
+        </header>
+        <div class="slide-body two-col wide-left">
+          <div class="stack">
+            <p class="lead">广告从小流量走向大流量，覆盖范围会从核心购买人群扩展到更多观望、比较和低意向用户。</p>
+            <div class="rule"></div>
+            <p><strong>真正要管理的不是“花多少钱”，而是：</strong><br><span class="muted">新增点击来自哪些词、哪些位置、哪些时段，以及它们是否还能带来订单。</span></p>
+          </div>
+          <div class="metric">
+            <span class="label">放量后的典型变化</span>
+            <span class="huge accent">量↑</span>
+            <span class="huge green">率↓</span>
+            <span class="delta">平均转化被稀释</span>
+          </div>
+        </div>
+        <footer class="slide-foot">
+          <span>核心判断：先看流量结构，再看预算数字</span>
+          <span>02 / 20</span>
+        </footer>
+      </section>
+
+      <!-- 第 3 页：案例时间线 -->
+      <section class="slide" aria-labelledby="s3-title">
+        <header class="slide-head">
+          <div class="eyebrow">案例复盘</div>
+          <h2 id="s3-title">预算加了 30，点击更多了，<span class="accent">转化从 12% 降到 5%</span></h2>
+        </header>
+        <div class="slide-body stack">
+          <div class="timeline">
+            <div class="time-item">
+              <div class="time-date">8 月初</div>
+              <div class="time-title">新品上架</div>
+              <div class="time-copy">完成 4 个直评，产品和广告尚未形成稳定权重。</div>
+            </div>
+            <div class="time-item">
+              <div class="time-date">8 月 15 日</div>
+              <div class="time-title">开启广告</div>
+              <div class="time-copy">新品冷启动，点击速度较慢。</div>
+            </div>
+            <div class="time-item">
+              <div class="time-date">8 月 16–20 日</div>
+              <div class="time-title">小流量转化较好</div>
+              <div class="time-copy">日均约 20 次点击；原稿记录转化约 12%。</div>
+            </div>
+            <div class="time-item">
+              <div class="time-date">8 月 21 日之后</div>
+              <div class="time-title">放量后转化走低</div>
+              <div class="time-copy">凌晨已 50+ 点击、5 单；预算超限后加 30，次日点击增加，转化降至约 5%。</div>
+            </div>
+          </div>
+          <div class="note"><strong>数据口径提醒：</strong>“20 次点击、5–6 单、转化 12%”三者无法同时成立；本案例只用于呈现“点击加速—加预算—转化下降”的趋势，正式复盘前应回查后台原始数据。</div>
+        </div>
+        <footer class="slide-foot">
+          <span>来源：用户提供的案例口述；未做后台数据核验</span>
+          <span>03 / 20</span>
+        </footer>
+      </section>
+
+      <!-- 案例详解：还原加预算时的现场判断 -->
+      <section class="slide" aria-labelledby="s3-detail-title">
+        <header class="slide-head">
+          <div class="eyebrow">案例详解</div>
+          <h2 id="s3-detail-title">为什么当时必须加预算？不加，广告很快就会停掉</h2>
+        </header>
+        <div class="slide-body two-col wide-left">
+          <div class="metric-pair">
+            <div class="metric">
+              <span class="label">8 月 21 日凌晨</span>
+              <span class="value green mono">50+</span>
+              <span class="delta">广告点击</span>
+            </div>
+            <div class="metric-arrow">→</div>
+            <div class="metric">
+              <span class="label">当时订单</span>
+              <span class="value accent mono">5</span>
+              <span class="delta">预算即将超限</span>
+            </div>
+          </div>
+          <div class="reading">
+            <p>到了 21 日，广告点击速度明显加快。凌晨时已经产生 50 多次点击和 5 个订单，同时当天预算接近或已经超限。</p>
+            <p>站在当时的操作角度，如果不增加预算，后面的时间里广告可能不再获得曝光，所以把预算增加 30 是一个很自然的决定。</p>
+            <p>但第二天出现的结果是：<strong>点击次数继续增加，平均转化却从原来的约 12% 降到了约 5%</strong>。</p>
+            <p class="key-sentence">问题不是“加预算这个按钮有毒”，而是加预算让广告继续进入更多拍卖，新增点击的人群结构发生了变化。</p>
+          </div>
+        </div>
+        <footer class="slide-foot">
+          <span>案例重点：预算解决了曝光中断，却没有同步控制新增流量质量</span>
+          <span>04 / 20</span>
+        </footer>
+      </section>
+
+      <!-- 第 4 页：流量分层机制 -->
+      <section class="slide" aria-labelledby="s4-title">
+        <header class="slide-head">
+          <div class="eyebrow">机制解释</div>
+          <h2 id="s4-title">越往外扩，新增人群的购买意向通常越弱</h2>
+        </header>
+        <div class="slide-body two-col">
+          <div class="traffic-orbit" aria-label="流量从核心高意向人群扩展到外围低意向人群">
+            <div class="orbit outer"><span class="orbit-copy">外围流量<br>浏览、比较、暂不购买</span></div>
+            <div class="orbit middle"><span class="orbit-copy">相关流量<br>有需求，但仍在选择</span></div>
+            <div class="orbit inner"><span class="orbit-copy">核心流量<br>看了就买</span></div>
+          </div>
+          <div class="stack">
+            <p class="lead">同一个搜索词下，也不是每个点击都同样有价值。</p>
+            <ul class="bullet-list">
+              <li><strong>核心人群有限：</strong>每天“马上购买”的用户数量不会无限增长。</li>
+              <li><strong>预算与权重放大覆盖：</strong>广告获得更多展示、时段与位置。</li>
+              <li><strong>新增点击质量下降：</strong>低意向流量占比提高，整体转化率被稀释。</li>
+            </ul>
+          </div>
+        </div>
+        <footer class="slide-foot">
+          <span>这是理解案例的“流量混合模型”，不是平台公开算法结论</span>
+          <span>05 / 20</span>
+        </footer>
+      </section>
+
+      <!-- 机制详解：解释高质量流量有限与低预算高转化 -->
+      <section class="slide" aria-labelledby="s4-detail-title">
+        <header class="slide-head">
+          <div class="eyebrow">机制详解</div>
+          <h2 id="s4-detail-title">为什么预算少、权重低时，转化有时反而更好？</h2>
+        </header>
+        <div class="slide-body two-col">
+          <div class="reading">
+            <p>搜索同一个关键词的客户，并不全都是马上要购买的高质量客户。很多人只是看一下、做比较，或者暂时还没有下单计划。</p>
+            <p>真正“看了就买”的人只占其中一部分，所以每天能够触达的高购买意向流量是有限的。</p>
+            <p>当预算较少、广告覆盖较窄时，点击可能更集中在与产品高度相关的一小群用户上，因此前期看到的转化率往往比较漂亮。</p>
+          </div>
+          <div class="reading">
+            <p>随着产品出单、广告竞争力提高，系统可能让广告参与更多拍卖，广告位置更靠前、覆盖时段更长，点击量也随之增加。</p>
+            <p>此时新增进来的用户购买意向未必和早期核心用户一样高。低意向点击占比上升后，整体转化率就会下降。</p>
+            <div class="note"><strong>边界说明：</strong>“低预算时系统会优先分配高质量人群”是对投放现象的一种经验解释，不是亚马逊公开确认的流量分配规则。实际复盘应以搜索词、广告位、时段和利润数据为准。</div>
+          </div>
+        </div>
+        <footer class="slide-foot">
+          <span>观察重点：新增点击是否仍然来自高相关、高购买意向人群</span>
+          <span>06 / 20</span>
+        </footer>
+      </section>
+
+      <!-- 第 5 页：加权平均示例 -->
+      <section class="slide" aria-labelledby="s5-title">
+        <header class="slide-head">
+          <div class="eyebrow">用数字看懂</div>
+          <h2 id="s5-title">高质量流量没有消失，<span class="accent">只是被更多低质量点击稀释</span></h2>
+        </header>
+        <div class="slide-body stack">
+          <div class="equation" aria-label="转化率稀释示例">
+            <div class="equation-part">
+              <span class="big green mono">20 × 12%</span>
+              <span class="small">原有高相关点击<br>≈ 2.4 单</span>
+            </div>
+            <span class="equation-sign">＋</span>
+            <div class="equation-part low">
+              <span class="big accent mono">40 × 1.5%</span>
+              <span class="small">新增边际点击<br>≈ 0.6 单</span>
+            </div>
+            <span class="equation-sign">＝</span>
+            <div class="equation-part result">
+              <span class="big mono">60 × 5%</span>
+              <span class="small">合计约 3 单<br>整体转化 5%</span>
+            </div>
+          </div>
+          <p class="lead" style="text-align:center;">订单绝对量可能略增，但平均转化率、ACOS 和边际利润可能同时恶化。</p>
+        </div>
+        <footer class="slide-foot">
+          <span>示意计算：用于解释加权平均，不代表案例的真实后台数据</span>
+          <span>07 / 20</span>
+        </footer>
+      </section>
+
+      <!-- 第 6 页：不改广告也会变差 -->
+      <section class="slide" aria-labelledby="s6-title">
+        <header class="slide-head">
+          <div class="eyebrow">另一个常见现象</div>
+          <h2 id="s6-title">什么都不改，时间久了，转化也可能下降</h2>
+        </header>
+        <div class="slide-body two-col wide-left">
+          <div class="curve-box" aria-label="点击规模上升时平均转化率下降的示意曲线">
+            <div class="curve-line"></div>
+            <span class="axis-y">平均转化率</span>
+            <span class="axis-x">累计点击规模</span>
+            <span class="curve-label good">前期：小样本、核心流量占比高</span>
+            <span class="curve-label margin">后期：覆盖扩展，边际流量占比提高</span>
+          </div>
+          <div class="stack">
+            <ul class="bullet-list">
+              <li>出单后广告竞争力提升，点击速度和覆盖范围扩大。</li>
+              <li>搜索词、位置、时段的流量结构会随投放继续变化。</li>
+              <li>前期样本太小，也可能把偶然的高转化误判成稳定水平。</li>
+            </ul>
+            <div class="note">所以要同时看转化率、订单量、ACOS/利润和样本量，不能只盯一个百分比。</div>
+          </div>
+        </div>
+        <footer class="slide-foot">
+          <span>转化率下降 ≠ 广告一定失败；先判断规模、利润和数据稳定性</span>
+          <span>08 / 20</span>
+        </footer>
+      </section>
+
+      <!-- 第 7 页：新品冷启动策略 -->
+      <section class="slide" aria-labelledby="s7-title">
+        <header class="slide-head">
+          <div class="eyebrow">阶段一 · 冷启动</div>
+          <h2 id="s7-title">先把人群标签做准，再考虑把流量做大</h2>
+        </header>
+        <div class="slide-body two-col">
+          <div class="stack">
+            <p class="huge green">先转化<br>后放量</p>
+            <p class="lead">前期目标不是“尽可能多花钱”，而是让每一次点击尽量来自高相关搜索。</p>
+          </div>
+          <ol class="number-list">
+            <li><strong>关键词只选高度相关：</strong>宁可流量小，也不要一开始就打大词、宽泛词。</li>
+            <li><strong>出价先解决冷启动：</strong>参考系统建议价；原稿建议使用“提高和降低”策略缩短等待点击的时间。</li>
+            <li><strong>预算按目标点击量给：</strong>先控制在约 30 个点击/天，避免早期流量快速外扩。</li>
+          </ol>
+        </div>
+        <footer class="slide-foot">
+          <span>操作原则：相关性优先，规模第二</span>
+          <span>09 / 20</span>
+        </footer>
+      </section>
+
+      <!-- 关键词策略详解：先精准后扩词 -->
+      <section class="slide" aria-labelledby="s7-keyword-title">
+        <header class="slide-head">
+          <div class="eyebrow">选词顺序</div>
+          <h2 id="s7-keyword-title">冷启动先投高度相关词，订单遇到瓶颈后再打宽词</h2>
+        </header>
+        <div class="slide-body two-col wide-left">
+          <div class="reading">
+            <p class="key-sentence">前期选择关键词时，只选和产品高度相关的词。哪怕这些词流量小一点，也不要急着用大流量词或过于宽泛的词。</p>
+            <p>这样做的目的，是尽量让早期点击来自真正需要这个产品的人。前期转化更干净，后面分析搜索词和广告位时也更容易判断问题。</p>
+            <p>产品运行一段时间后，如果精准词已经稳定出单，但订单增长开始遇到瓶颈，才需要寻找新的突破点。</p>
+            <p>这个阶段可以逐步测试更宽一点的关键词，让广告进入更广泛的市场；但每次扩词都要单独观察新增点击的转化和成本。</p>
+          </div>
+          <div class="stack">
+            <div class="callout"><strong>阶段 1：做准</strong><p>高相关词、小范围流量，优先积累有效转化。</p></div>
+            <div class="callout"><strong>阶段 2：做稳</strong><p>清理不相关搜索词，找到稳定转化的词和位置。</p></div>
+            <div class="callout"><strong>阶段 3：做大</strong><p>精准市场触顶后，再测试宽词和更大人群。</p></div>
+          </div>
+        </div>
+        <footer class="slide-foot">
+          <span>不要用宽泛流量完成冷启动；宽词更适合用来突破已验证产品的增长瓶颈</span>
+          <span>10 / 20</span>
+        </footer>
+      </section>
+
+      <!-- 新广告设置详解：还原原稿中的竞价方法 -->
+      <section class="slide" aria-labelledby="s7-bid-title">
+        <header class="slide-head">
+          <div class="eyebrow">新广告怎么开</div>
+          <h2 id="s7-bid-title">新广告没有历史权重，先用合理竞价拿到可分析的点击</h2>
+        </header>
+        <div class="slide-body two-col">
+          <div class="reading">
+            <p>关键词选择完成后，新建广告活动。原稿建议先参考系统建议竞价，并采用统一基础出价，避免一开始就把结构做得过于复杂。</p>
+            <p>竞价策略使用“提高和降低”。原稿给出的理由是：新开的广告没有历史权重，如果只按建议价静态等待，可能需要很久才能获得点击。</p>
+            <p>使用动态提高和降低，可以减少冷启动阶段等待流量的时间，让广告较快积累第一批点击和订单。</p>
+          </div>
+          <div class="stack">
+            <div class="callout"><strong>原稿建议的初始设置</strong><p>系统建议价作为参考；统一基础出价；动态竞价选择“提高和降低”。</p></div>
+            <div class="note"><strong>执行时仍需控制风险：</strong>建议价和动态竞价不是保证转化的公式。不同类目、关键词竞争度和利润空间不同，应设置可承受的 CPC 上限，并观察实际平均点击成本。</div>
+          </div>
+        </div>
+        <footer class="slide-foot">
+          <span>冷启动要解决“没有点击”的问题，但不能用失控竞价换取无效点击</span>
+          <span>11 / 20</span>
+        </footer>
+      </section>
+
+      <!-- 第 8 页：预算公式 -->
+      <section class="slide" aria-labelledby="s8-title">
+        <header class="slide-head">
+          <div class="eyebrow">预算怎么定</div>
+          <h2 id="s8-title">把预算变成“可控点击量”，而不是随手填一个大数字</h2>
+        </header>
+        <div class="slide-body stack">
+          <div class="formula" aria-label="预算计算示例">
+            <span>目标点击</span>
+            <span class="green mono">30</span>
+            <span class="operator">×</span>
+            <span>平均 CPC</span>
+            <span class="green mono">¥2</span>
+            <span class="operator">＝</span>
+            <span>日预算</span>
+            <span class="result mono">¥60</span>
+          </div>
+          <p class="formula-caption">原稿示例：基础出价约 ¥1，动态竞价后平均点击成本按 ¥2 估算。</p>
+          <div class="two-col">
+            <div class="callout"><strong>预算给太多的风险</strong><p>系统有更多机会扩展到低意向人群，转化标签可能被弱流量拖累。</p></div>
+            <div class="callout"><strong>预算给得可控的好处</strong><p>便于观察搜索词、广告位与订单之间的关系，再逐步放量。</p></div>
+          </div>
+        </div>
+        <footer class="slide-foot">
+          <span>30 点击是原稿中的操作阈值，不是所有品类的统一标准</span>
+          <span>12 / 20</span>
+        </footer>
+      </section>
+
+      <!-- 第 9 页：加预算时的组合动作 -->
+      <section class="slide" aria-labelledby="s9-title">
+        <header class="slide-head">
+          <div class="eyebrow">阶段二 · 点击加速</div>
+          <h2 id="s9-title">花钱速度变快时，<span class="accent">不要只加预算</span></h2>
+        </header>
+        <div class="slide-body two-col">
+          <div class="metric-pair">
+            <div class="metric">
+              <span class="label">预算</span>
+              <span class="value green">＋</span>
+              <span class="delta">保住有效曝光</span>
+            </div>
+            <div class="metric-arrow">↔</div>
+            <div class="metric">
+              <span class="label">竞价</span>
+              <span class="value accent">－</span>
+              <span class="delta">限制低效扩张</span>
+            </div>
+          </div>
+          <div class="stack">
+            <p class="lead">原稿的核心动作是：<strong>加预算必须同时控竞价、控词、控位置。</strong></p>
+            <ul class="bullet-list">
+              <li>主动降低基础竞价，避免流量瞬间扩得太快。</li>
+              <li>检查真实搜索词，及时否定不相关、低意向词。</li>
+              <li>观察流量来自哪个广告位，削减转化差的位置。</li>
+            </ul>
+          </div>
+        </div>
+        <footer class="slide-foot">
+          <span>加预算是“延长可投放时间”，控流量结构才是关键动作</span>
+          <span>13 / 20</span>
+        </footer>
+      </section>
+
+      <!-- 超预算处理详解：先降竞价再扩预算 -->
+      <section class="slide" aria-labelledby="s9-budget-title">
+        <header class="slide-head">
+          <div class="eyebrow">超预算怎么处理</div>
+          <h2 id="s9-budget-title">如果必须增加预算，原稿建议同时降低竞价</h2>
+        </header>
+        <div class="slide-body two-col wide-left">
+          <div class="reading">
+            <p>广告预算提前花完，说明当前广告在当天还有继续获得点击的能力。增加预算可以避免后续时段完全失去曝光，但也意味着广告会继续进入更多拍卖。</p>
+            <p>如果只加预算、其他参数完全不动，新增预算可能很快换来大量额外点击，其中会混入更多购买意向不高的客户。</p>
+            <p>因此原稿给出的组合动作是：<strong>增加预算的同时降低基础竞价</strong>。预算负责延长投放，降低竞价负责控制进入拍卖的速度和成本。</p>
+            <p class="key-sentence">加预算不是“打开水龙头”，而应该是一边延长供水时间，一边把水流调小。</p>
+          </div>
+          <div class="metric-pair">
+            <div class="metric">
+              <span class="label">日预算</span>
+              <span class="value green">↑</span>
+              <span class="delta">延长投放</span>
+            </div>
+            <div class="metric-arrow">＋</div>
+            <div class="metric">
+              <span class="label">基础竞价</span>
+              <span class="value accent">↓</span>
+              <span class="delta">控制扩量</span>
+            </div>
+          </div>
+        </div>
+        <footer class="slide-foot">
+          <span>同时检查搜索词；如果新增点击明显不相关，否词比继续加预算更重要</span>
+          <span>14 / 20</span>
+        </footer>
+      </section>
+
+      <!-- 第 10 页：首轮优化 -->
+      <section class="slide" aria-labelledby="s10-title">
+        <header class="slide-head">
+          <div class="eyebrow">阶段三 · 首轮优化</div>
+          <h2 id="s10-title">累计 100+ 点击后，先按广告位拆开看</h2>
+        </header>
+        <div class="slide-body two-col wide-left">
+          <div class="placement-bars" aria-label="广告位表现分析示意">
+            <div class="placement-row">
+              <span class="placement-label">搜索结果顶部</span>
+              <span class="placement-track"><span class="placement-fill" style="display:block;width:86%"></span></span>
+              <span class="placement-action">保留 / 加权</span>
+            </div>
+            <div class="placement-row">
+              <span class="placement-label">商品页面</span>
+              <span class="placement-track"><span class="placement-fill mid" style="display:block;width:56%"></span></span>
+              <span class="placement-action">继续观察</span>
+            </div>
+            <div class="placement-row">
+              <span class="placement-label">其余搜索位置</span>
+              <span class="placement-track"><span class="placement-fill low" style="display:block;width:31%"></span></span>
+              <span class="placement-action">压低流量</span>
+            </div>
+          </div>
+          <div class="stack">
+            <p><strong>优化思路：</strong>降低基础竞价，再提高高转化广告位的百分比，让预算更集中。</p>
+            <div class="rule"></div>
+            <p class="muted">完成第一轮后继续跑约 1 周，再按关键词转化表现逐步降低低效词竞价。</p>
+            <div class="note">图中长度仅作结构示意；实际动作必须使用各广告位真实转化与利润数据。</div>
+          </div>
+        </div>
+        <footer class="slide-foot">
+          <span>100+ 点击是复盘起点，不代表统计上必然稳定</span>
+          <span>15 / 20</span>
+        </footer>
+      </section>
+
+      <!-- 关键词优化详解：完成广告位优化后的第二轮 -->
+      <section class="slide" aria-labelledby="s10-keyword-title">
+        <header class="slide-head">
+          <div class="eyebrow">第二轮优化</div>
+          <h2 id="s10-keyword-title">广告位优化完成后，再跑一周，逐个检查关键词转化</h2>
+        </header>
+        <div class="slide-body two-col">
+          <div class="stack">
+            <div class="step" data-step="1">
+              <h3>先完成广告位优化</h3>
+              <p>减少商品页面、其余搜索位置等低转化位置的流量。</p>
+            </div>
+            <div class="step" data-step="2">
+              <h3>保持设置继续运行</h3>
+              <p>原稿建议继续跑约一个星期，避免刚调整完就用少量数据反复改动。</p>
+            </div>
+            <div class="step" data-step="3">
+              <h3>再看每个关键词</h3>
+              <p>降低转化差、成本高的关键词竞价，把点击留给稳定出单的词。</p>
+            </div>
+          </div>
+          <div class="reading">
+            <p>第一轮先处理广告位，是为了减少明显低效的位置流量；第二轮再处理关键词，是为了进一步控制每个流量入口的质量。</p>
+            <p>前期持续做这两层筛选，可以让产品尽量保持在较高的转化区间内，也能避免差流量过早影响整体广告数据。</p>
+            <div class="note">不要把“一个星期”理解成固定答案。销量较小的产品可能仍然没有足够样本，应结合点击数、订单数、利润和归因延迟判断。</div>
+          </div>
+        </div>
+        <footer class="slide-foot">
+          <span>优化顺序：先位置，后关键词；每轮调整后给数据留下稳定时间</span>
+          <span>16 / 20</span>
+        </footer>
+      </section>
+
+      <!-- 第 11 页：一个月节奏 -->
+      <section class="slide" aria-labelledby="s11-title">
+        <header class="slide-head">
+          <div class="eyebrow">一个月投放节奏</div>
+          <h2 id="s11-title">每次只放大一点，边跑边清理低效流量</h2>
+        </header>
+        <div class="slide-body">
+          <div class="steps">
+            <div class="step" data-step="1">
+              <h3>高相关启动</h3>
+              <p>精准选词、小预算、尽快积累首批有效点击。</p>
+            </div>
+            <div class="step" data-step="2">
+              <h3>点击加速</h3>
+              <p>花费变快时先降竞价、否词，控制扩量速度。</p>
+            </div>
+            <div class="step" data-step="3">
+              <h3>分层优化</h3>
+              <p>100+ 点击看位置，再跑一周看关键词。</p>
+            </div>
+            <div class="step" data-step="4">
+              <h3>稳定后放量</h3>
+              <p>约一个月后，数据和人群相对稳定，再加预算、微提竞价。</p>
+            </div>
+          </div>
+        </div>
+        <footer class="slide-foot">
+          <span>节奏关键词：建立标签 → 清洗流量 → 稳定验证 → 扩大规模</span>
+          <span>17 / 20</span>
+        </footer>
+      </section>
+
+      <!-- 第 12 页：订单瓶颈与产品抢单 -->
+      <section class="slide" aria-labelledby="s12-title">
+        <header class="slide-head">
+          <div class="eyebrow">店铺层面的瓶颈</div>
+          <h2 id="s12-title">广告点得更多，店铺总订单却不涨，可能是两个问题</h2>
+        </header>
+        <div class="slide-body two-col">
+          <div class="stack">
+            <div class="callout"><strong>01 · 垂直市场接近饱和</strong><p>高相关市场已触顶，需要谨慎测试更宽的关键词与新人群。</p></div>
+            <div class="callout"><strong>02 · 店内产品互相分流</strong><p>新品出单增加，老品出单减少，但店铺总量维持在同一区间。</p></div>
+          </div>
+          <div class="stack">
+            <p class="lead"><strong>可执行动作：</strong>如果目标是让某个产品多出单，就主动减少其他产品的广告流量，把有限预算和高质量机会集中到主推 SKU。</p>
+            <div class="note">“平台按店铺历史分配高质量流量、店铺存在订单上限”属于经验假设。判断前还应排查类目需求、价格、库存、Buy Box、自然排名和广告重叠。</div>
+          </div>
+        </div>
+        <footer class="slide-foot">
+          <span>先识别是市场上限、店内分流，还是产品竞争力问题</span>
+          <span>18 / 20</span>
+        </footer>
+      </section>
+
+      <!-- 店内分流详解：补回新品与老品互相抢单的案例 -->
+      <section class="slide" aria-labelledby="s12-store-title">
+        <header class="slide-head">
+          <div class="eyebrow">店内产品互相分流</div>
+          <h2 id="s12-store-title">新品出单增加、老品订单减少，但店铺总量不变</h2>
+        </header>
+        <div class="slide-body two-col wide-left">
+          <div class="reading">
+            <p>原稿提到一个店铺案例：原来的产品卖得很好，后来又上了几个新品。新品开始出单后，老产品的订单随之减少；新品出得越多，老产品反而出得越少。</p>
+            <p>当新品不再出单时，老产品又开始恢复出单。无论最终由哪个产品拿到订单，店铺全天订单量始终维持在相近范围。</p>
+            <p>甚至广告点击从 100 次增加到 200 次，整个店铺当天的订单数量仍然差不多。这种现象看起来像是店铺里的产品在争夺同一批有限的有效流量。</p>
+            <p class="key-sentence">如果目标是让某个主推产品多出单，就可以减少其他产品的广告流量，把预算和曝光机会集中给主推 SKU。</p>
+          </div>
+          <div class="stack">
+            <div class="callout"><strong>原稿的经验解释</strong><p>亚马逊高质量流量有限，系统可能参考店铺历史订单、退货率等表现分配流量；历史表现更好的店铺获得的优质流量可能更多。</p></div>
+            <div class="note"><strong>仍需排查其他原因：</strong>类目需求、价格、库存、Buy Box、自然排名、关键词重叠和不同产品之间的受众重合，都可能造成类似现象。</div>
+          </div>
+        </div>
+        <footer class="slide-foot">
+          <span>店铺“订单上限”属于经验假设；可执行的动作是重新分配店内广告流量</span>
+          <span>19 / 20</span>
+        </footer>
+      </section>
+
+      <!-- 第 13 页：最终行动与边界 -->
+      <section class="slide" aria-labelledby="s13-title">
+        <header class="slide-head">
+          <div class="eyebrow">最后的判断</div>
+          <h2 id="s13-title">广告只能放大产品竞争力，<span class="accent">不能替产品创造竞争力</span></h2>
+        </header>
+        <div class="slide-body stack">
+          <div class="text-band reading">
+            <p><strong>最后必须说明：</strong>按照这套方法操作，并不代表产品一定能获得好的转化。它只能帮助一个本身有竞争力、原本就具备转化能力的产品，在拿到优质流量时获得它应有的表现。</p>
+            <p>如果产品本身缺乏竞争力，或者选品阶段没有把市场需求、价格、评价和差异化分析清楚，那么广告怎么调整都很难从根本上改善转化。</p>
+          </div>
+          <div class="boundary">
+            <div class="boundary-side">
+              <h3 class="green">加预算前，先确认</h3>
+              <ul>
+                <li>产品页面本身能否稳定转化</li>
+                <li>搜索词是否高度相关</li>
+                <li>广告位与时段是否有明显低效流量</li>
+                <li>订单增长能否覆盖新增广告成本</li>
+                <li>样本量是否足以支持判断</li>
+              </ul>
+            </div>
+            <div class="boundary-side hypothesis">
+              <h3 class="accent">一套更稳的动作顺序</h3>
+              <ol class="number-list">
+                <li><strong>先做转化：</strong>高相关词、小预算，建立干净流量样本。</li>
+                <li><strong>再做扩量：</strong>增加预算时同步降竞价、否词、控位置。</li>
+                <li><strong>最后求突破：</strong>数据稳定后再测试宽词与更大市场。</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+        <footer class="slide-foot">
+          <span>一句话：先把流量做准，再把流量做大</span>
+          <span>20 / 20</span>
+        </footer>
+      </section>
+    </div>
+  </main>
+
+  <!-- 演示控制：键盘、按钮、触摸与打印 -->
+  <div class="progress" id="progress" aria-hidden="true"></div>
+  <div class="hint">← → 翻页 · F 全屏 · P 打印</div>
+  <nav class="controls" aria-label="幻灯片控制">
+    <button id="prev" type="button" aria-label="上一页">‹</button>
+    <span class="slide-count" id="slideCount" aria-live="polite">01 / 20</span>
+    <button id="next" type="button" aria-label="下一页">›</button>
+  </nav>
+
+  <!-- 交互逻辑：保持最小依赖，单文件即可运行 -->
+  <script>
+    (() => {
+      const slides = [...document.querySelectorAll('.slide')];
+      const prevButton = document.getElementById('prev');
+      const nextButton = document.getElementById('next');
+      const slideCount = document.getElementById('slideCount');
+      const progress = document.getElementById('progress');
+      const deck = document.getElementById('deck');
+      let current = 0;
+      let touchStartX = 0;
+
+      // 页码同步：根据实际页面数量更新每页脚注，避免扩展内容后手工页码失真
+      slides.forEach((slide, index) => {
+        const footerPage = slide.querySelector('.slide-foot span:last-child');
+        if (footerPage) footerPage.textContent = `${String(index + 1).padStart(2, '0')} / ${String(slides.length).padStart(2, '0')}`;
+      });
+
+      // 页面状态：统一更新可见页、按钮与地址哈希
+      const render = (index, updateHash = true) => {
+        current = Math.max(0, Math.min(index, slides.length - 1));
+        slides.forEach((slide, slideIndex) => {
+          slide.classList.toggle('active', slideIndex === current);
+          slide.classList.toggle('previous', slideIndex < current);
+          slide.setAttribute('aria-hidden', slideIndex === current ? 'false' : 'true');
+        });
+        prevButton.disabled = current === 0;
+        nextButton.disabled = current === slides.length - 1;
+        slideCount.textContent = `${String(current + 1).padStart(2, '0')} / ${String(slides.length).padStart(2, '0')}`;
+        progress.style.width = `${((current + 1) / slides.length) * 100}%`;
+        if (updateHash) history.replaceState(null, '', `#${current + 1}`);
+      };
+
+      // 导航动作：按钮、键盘和触摸共享同一套翻页方法
+      const goNext = () => render(current + 1);
+      const goPrev = () => render(current - 1);
+      prevButton.addEventListener('click', goPrev);
+      nextButton.addEventListener('click', goNext);
+
+      document.addEventListener('keydown', (event) => {
+        if (['ArrowRight', 'PageDown', ' ', 'Enter'].includes(event.key)) { event.preventDefault(); goNext(); }
+        if (['ArrowLeft', 'PageUp', 'Backspace'].includes(event.key)) { event.preventDefault(); goPrev(); }
+        if (event.key === 'Home') { event.preventDefault(); render(0); }
+        if (event.key === 'End') { event.preventDefault(); render(slides.length - 1); }
+        if (event.key.toLowerCase() === 'f') { document.documentElement.requestFullscreen?.(); }
+        if (event.key.toLowerCase() === 'p') { window.print(); }
+      });
+
+      deck.addEventListener('touchstart', (event) => { touchStartX = event.changedTouches[0].clientX; }, { passive: true });
+      deck.addEventListener('touchend', (event) => {
+        const distance = event.changedTouches[0].clientX - touchStartX;
+        if (Math.abs(distance) < 44) return;
+        distance < 0 ? goNext() : goPrev();
+      }, { passive: true });
+
+      // 初始页：允许通过 #页码 直接打开指定页面
+      const hashPage = Number.parseInt(location.hash.slice(1), 10);
+      render(Number.isFinite(hashPage) ? hashPage - 1 : 0, false);
+    })();
+  </script>
+</body>
+</html>
