@@ -178,11 +178,90 @@
     .progress { position: fixed; z-index: 21; top: 0; left: 0; width: 0; height: 4px; background: linear-gradient(90deg, var(--yellow), var(--orange)); transition: width 320ms ease; }
     .hint { position: fixed; z-index: 20; top: 22px; right: 28px; padding: 7px 11px; border-radius: 999px; color: rgba(255,255,255,0.72); background: rgba(13,20,17,0.62); font-size: 12px; backdrop-filter: blur(10px); }
 
-    /* 小屏与打印：保持可读，并支持浏览器打印成横版 PDF */
-    @media (max-width: 760px) {
+    /* 手机竖屏：切换为连续阅读模式，避免把完整 16:9 页面缩成小图 */
+    @media (max-width: 820px) and (orientation: portrait) {
+      html, body { height: auto; min-height: 100%; overflow-x: hidden; overflow-y: auto; background: var(--paper); }
+      .stage { position: static; display: block; padding: 0; background: var(--paper); }
+      .deck { width: 100%; aspect-ratio: auto; overflow: visible; border-radius: 0; box-shadow: none; }
+      .slide, .slide.active, .slide.previous { position: relative; inset: auto; display: grid; grid-template-rows: auto auto auto; width: 100%; min-height: 100svh; padding: max(58px, calc(env(safe-area-inset-top) + 36px)) 22px max(28px, calc(env(safe-area-inset-bottom) + 20px)); overflow: hidden; opacity: 1; visibility: visible; transform: none; transition: none; border-bottom: 1px solid var(--line); }
+      .slide::before { width: 54%; right: -24%; top: -10%; }
+      .slide::after { width: 34%; }
+      .slide-head { gap: 12px; }
+      .slide-body { min-height: auto; align-items: start; padding-top: 28px; }
+      .slide-foot { display: flex; margin-top: 30px; gap: 14px; align-items: flex-end; font-size: 11px; line-height: 1.45; }
+      .slide-foot > span:first-child { flex: 1 1 auto; min-width: 0; }
+      .slide-foot > span:last-child { flex: 0 0 auto; white-space: nowrap; }
+      .source-note { max-width: 78%; }
+      .eyebrow { font-size: 12px; letter-spacing: 0.1em; }
+      h1 { max-width: 100%; font-size: clamp(39px, 12vw, 54px); line-height: 1.08; letter-spacing: -0.05em; }
+      h2 { max-width: 100%; font-size: clamp(28px, 7.6vw, 38px); line-height: 1.18; letter-spacing: -0.035em; }
+      h3 { font-size: 22px; line-height: 1.35; }
+      p, li { font-size: 17px; line-height: 1.68; }
+      .lead { font-size: 20px; line-height: 1.58; }
+      .huge { font-size: 58px; line-height: 0.98; }
+      .reading { gap: 14px; }
+      .reading p { font-size: 17px; line-height: 1.72; }
+      .reading .key-sentence { font-size: 19px; line-height: 1.58; }
+      .mini-title { font-size: 19px; }
+      .text-band { padding: 16px; }
+      .text-band p { font-size: 16px; line-height: 1.65; }
+      .two-col, .two-col.wide-left, .equation, .steps, .boundary { grid-template-columns: 1fr; gap: 24px; }
+      .stack { gap: 18px; }
+      .callout { padding: 18px; border-radius: 16px; }
+      .callout p, .note { font-size: 16px; line-height: 1.62; }
+      .note { padding: 15px 16px; }
+      .bullet-list, .number-list { gap: 14px; }
+      .bullet-list li, .number-list li { font-size: 17px; }
+      .metric-pair { gap: 10px; }
+      .metric .label { font-size: 13px; }
+      .metric .value { font-size: 58px; }
+      .metric-arrow { font-size: 34px; }
+      .delta { font-size: 12px; }
+      .timeline { grid-template-columns: 1fr; gap: 0; padding-left: 24px; }
+      .timeline::before { left: 5px; right: auto; top: 10px; bottom: 18px; width: 3px; height: auto; background: linear-gradient(180deg, var(--green), var(--orange)); }
+      .time-item { padding: 0 0 28px 26px; }
+      .time-item::before { top: 5px; left: -24px; }
+      .time-date { font-size: 14px; }
+      .time-title { font-size: 20px; }
+      .time-copy { font-size: 16px; }
+      .traffic-orbit { min-height: 350px; }
+      .orbit.outer { width: min(310px, 86vw); }
+      .orbit.middle { width: min(220px, 61vw); }
+      .orbit.inner { width: min(112px, 31vw); }
+      .orbit-copy { font-size: 13px; }
+      .equation-part { min-height: auto; padding: 20px 16px; }
+      .equation-part .big { font-size: 32px; }
+      .equation-part .small { font-size: 14px; }
+      .equation-sign { text-align: center; font-size: 30px; }
+      .curve-box { height: 270px; min-height: 0; margin: 22px 4px 28px; }
+      .curve-label { max-width: 42%; font-size: 12px; }
+      .formula { gap: 8px 10px; padding: 22px 8px; font-size: 28px; line-height: 1.45; }
+      .formula-caption { font-size: 14px; line-height: 1.55; }
+      .steps { gap: 26px; }
+      .step { min-height: 66px; padding: 0 0 0 56px; }
+      .step::before { width: 40px; font-size: 16px; }
+      .step:not(:last-child)::after { top: 44px; left: 19px; width: 2px; height: calc(100% - 18px); }
+      .step h3 { margin-bottom: 5px; }
+      .step p { font-size: 16px; line-height: 1.58; }
+      .placement-bars { gap: 22px; }
+      .placement-row { grid-template-columns: 1fr auto; gap: 8px 12px; }
+      .placement-label { font-size: 16px; }
+      .placement-track { grid-column: 1 / -1; grid-row: 2; height: 15px; }
+      .placement-action { font-size: 14px; }
+      .boundary-side { padding: 20px 18px; }
+      .boundary-side li { font-size: 16px; }
+      .cover { min-height: 100svh; padding-top: max(72px, calc(env(safe-area-inset-top) + 48px)); }
+      .cover .slide-body { align-items: end; padding: 40px 0 88px; }
+      .cover .lead { max-width: 88%; }
+      .cover-mark { right: -34px; bottom: 118px; width: 160px; opacity: 0.78; }
+      .controls, .progress, .hint { display: none !important; }
+    }
+
+    /* 手机横屏：继续使用 16:9 演示模式，并减少外围留白和控件遮挡 */
+    @media (max-height: 600px) and (orientation: landscape) {
       .stage { padding: 0; }
-      .deck { width: 100vw; border-radius: 0; }
-      .controls { bottom: 10px; }
+      .deck { width: min(100vw, calc(100vh * 16 / 9)); border-radius: 0; }
+      .controls { bottom: 6px; transform: translateX(-50%) scale(0.82); transform-origin: bottom center; }
       .hint { display: none; }
     }
 
@@ -801,6 +880,7 @@
       const slideCount = document.getElementById('slideCount');
       const progress = document.getElementById('progress');
       const deck = document.getElementById('deck');
+      const mobileReadingQuery = window.matchMedia('(max-width: 820px) and (orientation: portrait)');
       let current = 0;
       let touchStartX = 0;
 
@@ -816,7 +896,7 @@
         slides.forEach((slide, slideIndex) => {
           slide.classList.toggle('active', slideIndex === current);
           slide.classList.toggle('previous', slideIndex < current);
-          slide.setAttribute('aria-hidden', slideIndex === current ? 'false' : 'true');
+          slide.setAttribute('aria-hidden', mobileReadingQuery.matches || slideIndex === current ? 'false' : 'true');
         });
         prevButton.disabled = current === 0;
         nextButton.disabled = current === slides.length - 1;
@@ -832,6 +912,11 @@
       nextButton.addEventListener('click', goNext);
 
       document.addEventListener('keydown', (event) => {
+        if (mobileReadingQuery.matches) {
+          if (event.key.toLowerCase() === 'f') { document.documentElement.requestFullscreen?.(); }
+          if (event.key.toLowerCase() === 'p') { window.print(); }
+          return;
+        }
         if (['ArrowRight', 'PageDown', ' ', 'Enter'].includes(event.key)) { event.preventDefault(); goNext(); }
         if (['ArrowLeft', 'PageUp', 'Backspace'].includes(event.key)) { event.preventDefault(); goPrev(); }
         if (event.key === 'Home') { event.preventDefault(); render(0); }
@@ -842,6 +927,7 @@
 
       deck.addEventListener('touchstart', (event) => { touchStartX = event.changedTouches[0].clientX; }, { passive: true });
       deck.addEventListener('touchend', (event) => {
+        if (mobileReadingQuery.matches) return;
         const distance = event.changedTouches[0].clientX - touchStartX;
         if (Math.abs(distance) < 44) return;
         distance < 0 ? goNext() : goPrev();
@@ -850,6 +936,7 @@
       // 初始页：允许通过 #页码 直接打开指定页面
       const hashPage = Number.parseInt(location.hash.slice(1), 10);
       render(Number.isFinite(hashPage) ? hashPage - 1 : 0, false);
+      mobileReadingQuery.addEventListener?.('change', () => render(current, false));
     })();
   </script>
 </body>
